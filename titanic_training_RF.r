@@ -101,7 +101,7 @@ training.dummy2$Cabin <- NULL
 
 training <- sapply(training.dummy2,as.numeric)
 training <- as.data.frame(training)
-  training[,"Status"] <- as.factor(training[,"Status"])
+training[,"Status"] <- as.factor(training[,"Status"])
 
 training[is.na(training)] <- 0
 
