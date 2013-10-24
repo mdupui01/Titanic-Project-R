@@ -5,97 +5,33 @@ print('This is the titanic project script for a random forest.')
 library(randomForest)
 library(Amelia)
 
+graphics.off()
+
 # Kaggle Project
 # Titanic Project
 
 # Load the data
 
 training.dummy <- read.csv('train.csv')
+temp <- training.dummy
 
 # Visually inspecting missing data
 
 missmap(training.dummy, main = "Missing Map")
 
-# Extracting the titles from the name
+# Preping the data with a custom function
 
-title <- as.character(training.dummy$Name)
-title <- strsplit(title," ")
-maxLen <- max(sapply(title,length))
-title <- t(sapply(title, function(x) c(x, rep(NA, maxLen - length(x)))))
-titleTemp <- title[,2]
+training.dummy <- prepData(training.dummy)
 
-titleTest <- grepl("\\.",titleTemp)
+# Use the title to make a guess at the age
+age.Miss <- ifelse((training.dummy$Name == "Miss."),1,NA)
+age.Miss <- age.Miss*training.dummy$Age
+mean.age.Miss <- mean(age.Miss,na.rm = T)
+training.dummy$Age <- ifelse(training.dummy$Name == "Miss." & training.dummy$Age == NA, mean.age.Miss, Age)
 
-for(i in 1:length(titleTest)){
-  if(titleTest[i] == FALSE){
-    titleTemp[i] = title[i,3]
-  }
-}
-
-titleTemp <- ifelse(titleTemp == "Miss." | titleTemp == "Mrs.",titleTemp,"Mr.")
-
-# Prior to removing the names, I use them to take a guess at the NA ages
-
-ages.Miss <- matrix(0, nrow = 891, ncol = 1)
-ages.Mr <- matrix(0, nrow = 891, ncol = 1)
-ages.Mrs <- matrix(0, nrow = 891, ncol = 1)
-ages.dead <- matrix(0, nrow = 891, ncol = 1)
-
-grep1 <- grepl('Miss',training.dummy$Name)
-grep2 <- grepl('Mr',training.dummy$Name)
-grep3 <- grepl('Mrs',training.dummy$Name)
-
-condition.test <- (training.dummy$Age != 'NA' && training.dummy$Survived == 0)
-
-training.dummy$Age[is.na(training.dummy$Age)] <- 0
-
-for(i in 1:891){
-  if(training.dummy$Age[i] != 0){
-    if(training.dummy$Survived[i] ==0){
-      if(grep1[i] == T){
-        ages.Miss[i] <- training.dummy$Age[i]
-      }
-      if(grep2[i] == T){
-        ages.Mr[i] <- training.dummy$Age[i]
-      }
-      if(grep3[i] == T){
-        ages.Mrs[i] <- training.dummy$Age[i]
-      }
-      if(training.dummy$Survived[i] == 0){
-        ages.dead[i] <- training.dummy$Age[i]
-      }
-    }
-  }
-}
-
-ages.Miss <- ages.Miss[ages.Miss != 0]
-ages.Mr <- ages.Mr[ages.Mr != 0]
-ages.Mrs <- ages.Mrs[ages.Mrs != 0]
-ages.dead <- ages.dead[ages.dead != 0]
-
-average.Miss <- mean(ages.Miss)
-average.Mr <- mean(ages.Mr)
-average.Mrs <- mean(ages.Mrs)
-average.dead <- mean(ages.dead)
-for(i in 1:891){
-  if(training.dummy$Age[i] == 0){
-    if(grep1[i] == T){
-      training.dummy$Age[i] <- average.Miss
-    }
-    if(grep2[i] == T){
-      training.dummy$Age[i] <- average.Mr
-    }
-    if(grep3[i] == T){
-      training.dummy$Age[i] <- average.Mrs
-    }
-    if(grep1[i] == F & grep2[i] == F & grep3[i] == F){
-      training.dummy$Age[i] <- average.dead
-    }
-  }
-}
-
-training.dummy$Name <- NULL
-training.dummy$Ticket <- NULL
+age.Mrs <- ifelse(training.dummy$Name == "Mrs.",training.dummy$Age,NA)
+mean.age.Mrs <- mean(age.Mrs,na.rm = T)
+training.dummy$Age <- ifelse(training.gummy$Name == "Mrs." & training.dummy$Age == NA, mean.age.Mrs, Age)
 
 # Sort embarkation into different columns
 
@@ -118,9 +54,6 @@ training.dummy2$Embarked <- NULL
 training.dummy2$Survived <- NULL
 
 colnames(training.dummy2) <- c('ID','Class','Sex','Age','Sibs','Par','Fare','Cabin','Cherbourg','Queenstown','Southampton','Status')
-
-training.dummy2$ID <- NULL
-training.dummy2$Cabin <- NULL
 
 training <- sapply(training.dummy2,as.numeric)
 training <- as.data.frame(training)
