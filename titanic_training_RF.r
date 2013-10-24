@@ -16,6 +16,24 @@ training.dummy <- read.csv('train.csv')
 
 missmap(training.dummy, main = "Missing Map")
 
+# Extracting the titles from the name
+
+title <- as.character(training.dummy$Name)
+title <- strsplit(title," ")
+maxLen <- max(sapply(title,length))
+title <- t(sapply(title, function(x) c(x, rep(NA, maxLen - length(x)))))
+titleTemp <- title[,2]
+
+titleTest <- grepl("\\.",titleTemp)
+
+for(i in 1:length(titleTest)){
+  if(titleTest[i] == FALSE){
+    titleTemp[i] = title[i,3]
+  }
+}
+
+titleTemp <- ifelse(titleTemp == "Miss." | titleTemp == "Mrs.",titleTemp,"Mr.")
+
 # Prior to removing the names, I use them to take a guess at the NA ages
 
 ages.Miss <- matrix(0, nrow = 891, ncol = 1)
