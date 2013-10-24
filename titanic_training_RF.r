@@ -13,7 +13,6 @@ graphics.off()
 # Load the data
 
 training.dummy <- read.csv('train.csv')
-temp <- training.dummy
 
 # Visually inspecting missing data
 
@@ -24,50 +23,33 @@ missmap(training.dummy, main = "Missing Map")
 training.dummy <- prepData(training.dummy)
 
 # Use the title to make a guess at the age
-age.Miss <- ifelse((training.dummy$Name == "Miss."),1,NA)
-age.Miss <- age.Miss*training.dummy$Age
-mean.age.Miss <- mean(age.Miss,na.rm = T)
-training.dummy$Age <- ifelse(training.dummy$Name == "Miss." & training.dummy$Age == NA, mean.age.Miss, Age)
 
-age.Mrs <- ifelse(training.dummy$Name == "Mrs.",training.dummy$Age,NA)
-mean.age.Mrs <- mean(age.Mrs,na.rm = T)
-training.dummy$Age <- ifelse(training.gummy$Name == "Mrs." & training.dummy$Age == NA, mean.age.Mrs, Age)
+training.dummy <- fillAge(training.dummy)
 
 # Sort embarkation into different columns
 
-temp <- matrix(data = 0, nrow = 891, ncol = 3)
-for(i in 1:891){
-  if(training.dummy$Embarked[i] == 'C'){
-    temp[i,1] <- 1
-  }
-  if(training.dummy$Embarked[i] == 'Q'){
-    temp[i,2] <- 1
-  }
-  if(training.dummy$Embarked[i] == 'S'){
-    temp[i,3] <- 1
-  }
-}
+temp <- data.frame(C = 1:891,Q = 1:891, S = 1:891)
+temp$C <- ifelse(training.dummy$Embarked == "C",1,0)
+temp$Q <- ifelse(training.dummy$Embarked == "Q",1,0)
+temp$S <- ifelse(training.dummy$Embarked == "S",1,0)
 
 training.dummy2 <- cbind(training.dummy,temp)
 training.dummy2[,14] <- training.dummy$Survived
 training.dummy2$Embarked <- NULL
 training.dummy2$Survived <- NULL
 
-colnames(training.dummy2) <- c('ID','Class','Sex','Age','Sibs','Par','Fare','Cabin','Cherbourg','Queenstown','Southampton','Status')
+colnames(training.dummy2) <- c('ID','Class','Title','Sex','Age','Sibs','Par','Fare','Cherbourg','Queenstown','Southampton','Status')
 
-training <- sapply(training.dummy2,as.numeric)
-training <- as.data.frame(training)
+#training <- sapply(training.dummy2,as.numeric)
+training <- as.data.frame(training.dummy2)
 training[,"Status"] <- as.factor(training[,"Status"])
-
 training[is.na(training)] <- 0
 
 # Training the RF
 
-#ind <- sample(2, nrow(training), replace = TRUE, prob(0.7,0.3))
 trainData <- training[1:400,]
 testData <- training[401:891,]
 
-trainData = training
 training_rf <- randomForest(x = trainData[,1:(ncol(trainData)-1)], y = trainData[,"Status"], importance = TRUE, do.trace = 1000)
 
 test_predict <- predict(training_rf, testData[,1:(ncol(trainData)-1)])
