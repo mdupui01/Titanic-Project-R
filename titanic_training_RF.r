@@ -34,13 +34,22 @@ temp$Q <- ifelse(training.dummy$Embarked == "Q",1,0)
 temp$S <- ifelse(training.dummy$Embarked == "S",1,0)
 
 training.dummy2 <- cbind(training.dummy,temp)
-training.dummy2[,14] <- training.dummy$Survived
 training.dummy2$Embarked <- NULL
+
+temp <- data.frame(Mr = 1:891, Miss = 1:891, Mrs = 1:891)
+temp$Mr <- ifelse(training.dummy$Name == "Mr.",1,0)
+temp$Miss <- ifelse(training.dummy$Name == "Miss.",1,0)
+temp$Mrs <- ifelse(training.dummy$Name == "Mrs.",1,0)
+
+training.dummy2 <- cbind(training.dummy2,temp)
+training.dummy2[,16] <- training.dummy$Survived
+training.dummy2$Name <- NULL
 training.dummy2$Survived <- NULL
 
-colnames(training.dummy2) <- c('ID','Class','Title','Sex','Age','Sibs','Par','Fare','Cherbourg','Queenstown','Southampton','Status')
 
-#training <- sapply(training.dummy2,as.numeric)
+colnames(training.dummy2) <- c('ID','Class','Sex','Age','Sibs','Par','Fare','Cherbourg','Queenstown','Southampton','Mr','Miss','Mrs','Status')
+
+training <- sapply(training.dummy2,as.numeric)
 training <- as.data.frame(training.dummy2)
 training[,"Status"] <- as.factor(training[,"Status"])
 training[is.na(training)] <- 0

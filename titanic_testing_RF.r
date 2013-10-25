@@ -4,59 +4,41 @@ print('This is the Titanic script for outputting the results.')
 
 testing.dummy <- read.csv('test.csv')
 
-# Prior to removing the names, I use them to take a guess at the NA ages
+# Cleaning up the data
 
-condition.test <- (testing.dummy$Age != 'NA' && testing.dummy$Survived == 0)
+testing.dummy <- prepData(testing.dummy)
 
-testing.dummy$Age[is.na(testing.dummy$Age)] <- 0
+# Use the title to make a guess at the age
 
-for(i in 1:nrow(testing.dummy)){
-  if(testing.dummy$Age[i] == 0){
-    if(grep1[i] == T){
-      testing.dummy$Age[i] <- average.Miss
-    }
-    if(grep2[i] == T){
-      testing.dummy$Age[i] <- average.Mr
-    }
-    if(grep3[i] == T){
-      testing.dummy$Age[i] <- average.Mrs
-    }
-    if(grep1[i] == F & grep2[i] == F & grep3[i] == F){
-      testing.dummy$Age[i] <- average.dead
-    }
-  }
-}
-
-testing.dummy$Name <- NULL
-testing.dummy$Ticket <- NULL
+testing.dummy <- fillAge(testing.dummy)
 
 # Sort embarkation into different columns
 
-temp <- matrix(data = 0, nrow = nrow(testing.dummy), ncol = 3)
-for(i in 1:nrow(testing.dummy)){
-  if(testing.dummy$Embarked[i] == 'C'){
-    temp[i,1] <- 1
-  }
-  if(testing.dummy$Embarked[i] == 'Q'){
-    temp[i,2] <- 1
-  }
-  if(testing.dummy$Embarked[i] == 'S'){
-    temp[i,3] <- 1
-  }
-}
-testing.dummy$Embarked <- NULL
+temp <- data.frame(C = 1:418,Q = 1:418, S = 1:418)
+temp$C <- ifelse(testing.dummy$Embarked == "C",1,0)
+temp$Q <- ifelse(testing.dummy$Embarked == "Q",1,0)
+temp$S <- ifelse(testing.dummy$Embarked == "S",1,0)
+
 testing.dummy2 <- cbind(testing.dummy,temp)
-colnames(testing.dummy2) <- c('ID','Class','Sex','Age','Sibs','Par','Fare','Cabin','Cherbourg','Queenstown','Southampton')
-ID <- testing.dummy2$ID
-testing.dummy2$ID <- NULL
-testing.dummy2$Cabin <- NULL
+testing.dummy2$Embarked <- NULL
+
+temp <- data.frame(Mr = 1:418, Miss = 1:418, Mrs = 1:418)
+temp$Mr <- ifelse(testing.dummy$Name == "Mr.",1,0)
+temp$Miss <- ifelse(testing.dummy$Name == "Miss.",1,0)
+temp$Mrs <- ifelse(testing.dummy$Name == "Mrs.",1,0)
+
+testing.dummy2 <- cbind(testing.dummy2,temp)
+testing.dummy2$Name <- NULL
+
+
+colnames(testing.dummy2) <- c('ID','Class','Sex','Age','Sibs','Par','Fare','Cherbourg','Queenstown','Southampton','Mr','Miss','Mrs')
 
 testing <- sapply(testing.dummy2,as.numeric)
-testing <- as.data.frame(testing)
+testing <- as.data.frame(testing.dummy2)
 
 testing[is.na(testing)] <- 0
 
-prediction.submission <- predict(training_rf, testing)
+prediction.submission <- predict(training, testing)
 
 # Write the submission predictions to a csv file
 
