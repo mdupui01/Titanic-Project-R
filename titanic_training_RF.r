@@ -16,7 +16,7 @@ training.dummy <- read.csv('train.csv')
 
 # Visually inspecting missing data
 
-missmap(training.dummy, main = "Missing Map")
+# missmap(training.dummy, main = "Missing Map")
 
 # Preping the data with a custom function
 
